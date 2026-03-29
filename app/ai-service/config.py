@@ -3,7 +3,7 @@ Configuration module for Soter AI Service
 Handles environment variables and API key management
 """
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 import logging
 
@@ -47,10 +47,11 @@ class Settings(BaseSettings):
     proof_of_life_confidence_threshold: float = 0.65
     proof_of_life_min_face_size: int = 80
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
     
     def validate_api_keys(self) -> bool:
         """

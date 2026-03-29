@@ -13,6 +13,7 @@ import httpx
 
 import metrics
 from config import settings
+from services.pii_scrubber import PIIScrubberService
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ celery_app.conf.update(
 
 # Task status storage (in production, use Redis with proper TTL)
 task_results: Dict[str, Dict[str, Any]] = {}
+pii_scrubber_service = PIIScrubberService()
 
 
 def update_task_status(
@@ -210,6 +212,13 @@ def _process_model_inference(payload: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         dict: Inference results
     """
+    data = payload.get('data', {})
+    raw_text = data.get('text') if isinstance(data, dict) else None
+    anonymization_result = None
+    if isinstance(raw_text, str) and raw_text.strip():
+        # Enforce privacy-by-design: sanitize text before any external LLM call.
+        anonymization_result = pii_scrubber_service.anonymize(raw_text)
+
     # Simulate model inference
     time.sleep(3)  # Simulate inference time
     
@@ -222,7 +231,8 @@ def _process_model_inference(payload: Dict[str, Any]) -> Dict[str, Any]:
                 {'label': 'need_rejected', 'confidence': 0.03}
             ],
             'model_version': 'v1.0.0',
-            'processing_time_ms': 250
+            'processing_time_ms': 250,
+            'anonymization': anonymization_result,
         },
         'processing_time': 3.0
     }

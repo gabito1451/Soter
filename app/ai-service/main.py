@@ -21,6 +21,8 @@ from api.routes import router as ocr_router
 from config import settings
 import tasks
 from proof_of_life import ProofOfLifeAnalyzer, ProofOfLifeConfig
+from schemas.anonymization import AnonymizeRequest, AnonymizeResponse
+from services.pii_scrubber import PIIScrubberService
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -60,6 +62,7 @@ proof_of_life_analyzer = ProofOfLifeAnalyzer(
         min_face_size=settings.proof_of_life_min_face_size,
     )
 )
+pii_scrubber_service = PIIScrubberService()
 
 
 # Request/Response models
@@ -227,6 +230,19 @@ async def analyze_proof_of_life(request: ProofOfLifeRequest):
         raise HTTPException(
             status_code=500, detail="Failed to process proof-of-life request"
         )
+
+
+@app.post("/ai/anonymize", response_model=AnonymizeResponse)
+async def anonymize_text(request: AnonymizeRequest):
+    """Anonymize names, locations, and dates before text is sent to external LLMs."""
+    logger.info("Processing privacy-preserving anonymization request")
+
+    try:
+        result = pii_scrubber_service.anonymize(request.text)
+        return AnonymizeResponse(success=True, **result)
+    except Exception as e:
+        logger.error(f"Anonymization failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to anonymize text")
 
 
 @app.get("/ai/status/{task_id}", response_model=TaskStatusResponse)
