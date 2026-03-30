@@ -994,12 +994,12 @@ impl AidEscrow {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::testutils::{Address as _, MockAuth, MockAuthInvoke};
-    use soroban_sdk::{Env, testutils::Ledger};
+    use soroban_sdk::testutils::Address as _;
+    use soroban_sdk::Env;
 
     fn setup() -> (Env, AidEscrowClient<'static>) {
         let env = Env::default();
-        let contract_id = env.register_contract(None, AidEscrow);
+        let contract_id = env.register(AidEscrow, ());
         let client = AidEscrowClient::new(&env, &contract_id);
         (env, client)
     }
@@ -1010,14 +1010,16 @@ mod tests {
         let admin = Address::generate(&env);
         let recipient = Address::generate(&env);
         let token = Address::generate(&env);
+        let operator = admin.clone();
 
         env.mock_all_auths();
-        client.initialize(&admin);
+        client.init(&admin);
 
-        let package_id = client.create_package(&recipient, &1000, &token, &86400);
+        let package_id =
+            client.create_package(&operator, &1, &recipient, &1000, &token, &86400);
         client.cancel_package(&package_id);
 
-        let package = client.get_package(&package_id).unwrap();
+        let package = client.get_package(&package_id);
         assert_eq!(package.status, PackageStatus::Cancelled);
     }
 }
