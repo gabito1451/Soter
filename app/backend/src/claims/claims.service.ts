@@ -349,4 +349,163 @@ export class ClaimsService {
     // Stub: In production, this would log to audit table or external system
     console.log(`Audit: ${entity} ${entityId} ${action}`, metadata);
   }
+
+  /**
+   * Generate a receipt DTO for a claim
+   */
+  async getReceipt(id: string) {
+    const claim = await this.findOne(id);
+
+    if (!claim) {
+      throw new NotFoundException('Claim not found');
+    }
+
+    const tokenAddress = this.getTokenAddressForClaim(claim);
+
+    return {
+      claimId: claim.id,
+      packageId: claim.campaignId,
+      status: claim.status,
+      amount: claim.amount,
+      timestamp: claim.createdAt.toISOString(),
+      tokenAddress,
+      recipientRef: claim.recipientRef,
+    };
+  }
+
+  /**
+   * Generate and share a claim receipt
+   * Supports email, SMS, and inline sharing
+   */
+  async shareReceipt(
+    id: string,
+    shareDto: any, // SendReceiptShareDto type
+  ) {
+    const receipt = await this.getReceipt(id);
+
+    // Generate receipt text
+    const receiptText = this.generateReceiptText(receipt);
+
+    // Generate filename
+    const filename = `claim-receipt-${receipt.claimId}.txt`;
+
+    // Base64 encode the receipt text
+    const receiptData = Buffer.from(receiptText).toString('base64');
+
+    // Handle different sharing channels
+    if (shareDto.channel === 'email' && shareDto.emailAddresses?.length) {
+      await this.sendReceiptViaEmail(
+        shareDto.emailAddresses,
+        receipt,
+        receiptText,
+        shareDto.message,
+      );
+    } else if (shareDto.channel === 'sms' && shareDto.phoneNumbers?.length) {
+      await this.sendReceiptViaSMS(
+        shareDto.phoneNumbers,
+        receipt,
+        shareDto.message,
+      );
+    }
+
+    // Audit log the share action
+    void this.auditLog('claim', id, 'receipt_shared', {
+      channel: shareDto.channel,
+      emailCount: shareDto.emailAddresses?.length || 0,
+      smsCount: shareDto.phoneNumbers?.length || 0,
+    });
+
+    return {
+      receiptData,
+      mimeType: 'text/plain',
+      filename,
+      text: receiptText,
+    };
+  }
+
+  /**
+   * Generate formatted receipt text
+   */
+  private generateReceiptText(receipt: any): string {
+    const lines = [
+      '═══════════════════════════════════════',
+      '         CLAIM RECEIPT',
+      '═══════════════════════════════════════',
+      '',
+      `Claim ID:        ${receipt.claimId}`,
+      `Package ID:      ${receipt.packageId}`,
+      `Status:          ${receipt.status.toUpperCase()}`,
+      `Amount:          ${receipt.amount} tokens`,
+      `Date:            ${receipt.timestamp}`,
+    ];
+
+    if (receipt.tokenAddress) {
+      lines.push(`Token Address:   ${receipt.tokenAddress}`);
+    }
+
+    if (receipt.recipientRef) {
+      lines.push(`Recipient:       ${receipt.recipientRef}`);
+    }
+
+    lines.push('');
+    lines.push('═══════════════════════════════════════');
+    lines.push('This is an automated proof of claim');
+    lines.push('completion on the Soter platform.');
+    lines.push('═══════════════════════════════════════');
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Send receipt via email
+   * Stub implementation - replace with actual email service
+   */
+  private async sendReceiptViaEmail(
+    emailAddresses: string[],
+    receipt: any,
+    receiptText: string,
+    message?: string,
+  ) {
+    this.logger.log(
+      `Sending receipt via email to ${emailAddresses.length} recipient(s)`,
+      {
+        claimId: receipt.claimId,
+        recipients: emailAddresses,
+      },
+    );
+
+    // TODO: Integrate with email service (SendGrid, AWS SES, etc.)
+    // For now, this is a stub that logs the action
+    for (const email of emailAddresses) {
+      this.logger.debug(
+        `[EMAIL STUB] Would send receipt to ${email}`,
+        receiptText.substring(0, 100),
+      );
+    }
+  }
+
+  /**
+   * Send receipt via SMS
+   * Stub implementation - replace with actual SMS service
+   */
+  private async sendReceiptViaSMS(
+    phoneNumbers: string[],
+    receipt: any,
+    message?: string,
+  ) {
+    this.logger.log(
+      `Sending receipt via SMS to ${phoneNumbers.length} recipient(s)`,
+      {
+        claimId: receipt.claimId,
+        recipients: phoneNumbers,
+      },
+    );
+
+    // TODO: Integrate with SMS service (Twilio, AWS SNS, etc.)
+    // For now, this is a stub that logs the action
+    const smsText = `Claim ${receipt.claimId} - Status: ${receipt.status} - Amount: ${receipt.amount} tokens`;
+    for (const phone of phoneNumbers) {
+      this.logger.debug(`[SMS STUB] Would send to ${phone}: ${smsText}`);
+    }
+  }
 }
