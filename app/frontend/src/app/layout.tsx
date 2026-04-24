@@ -42,8 +42,9 @@ export default function RootLayout({
               {children}
             </ToastProvider>
           </QueryProvider>
+          </ErrorBoundary>
         </ThemeProvider>
-        </ErrorBoundary>
+        
       </body>
     </html>
   );

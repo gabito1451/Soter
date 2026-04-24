@@ -34,18 +34,28 @@ type Cluster = {
   points: AidPackagePoint[];
 };
 
-function normalizePoint(input: any, index: number): AidPackagePoint | null {
-  const lat = Number(input?.lat ?? input?.latitude);
-  const lng = Number(input?.lng ?? input?.longitude);
+function normalizePoint(input: unknown, index: number): AidPackagePoint | null {
+  if (!input || typeof input !== 'object') {
+    return null;
+  }
+
+  const point = input as Record<string, unknown>;
+  const lat = Number(point.lat ?? point.latitude);
+  const lng = Number(point.lng ?? point.longitude);
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
   return {
-    id: String(input?.id ?? input?.packageId ?? `pkg-${index}`),
+    id: String(point.id ?? point.packageId ?? `pkg-${index}`),
     lat,
     lng,
-    amount: input?.amount ?? input?.value ?? '—',
-    token: String(input?.token ?? input?.asset ?? 'N/A'),
-    status: String(input?.status ?? 'Unknown'),
+    amount:
+      typeof point.amount === 'number' || typeof point.amount === 'string'
+        ? point.amount
+        : typeof point.value === 'number' || typeof point.value === 'string'
+          ? point.value
+          : '—',
+    token: String(point.token ?? point.asset ?? 'N/A'),
+    status: String(point.status ?? 'Unknown'),
   };
 }
 
@@ -135,8 +145,12 @@ export default function AidDistributionMap() {
         if (!response.ok) {
           throw new Error(`Request failed: ${response.status}`);
         }
-        const payload = await response.json();
-        const rawPoints = Array.isArray(payload) ? payload : payload?.data ?? [];
+        const payload: unknown = await response.json();
+        const rawPoints = Array.isArray(payload)
+          ? payload
+          : payload && typeof payload === 'object' && Array.isArray((payload as { data?: unknown }).data)
+            ? (payload as { data: unknown[] }).data
+            : [];
         const normalized = rawPoints
           .map(normalizePoint)
           .filter((item): item is AidPackagePoint => Boolean(item));
@@ -145,7 +159,7 @@ export default function AidDistributionMap() {
           setPoints(normalized);
           setError(null);
         }
-      } catch (err) {
+      } catch {
         if (active) {
           setError('Unable to load live distribution data.');
         }

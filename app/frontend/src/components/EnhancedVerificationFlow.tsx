@@ -105,6 +105,7 @@ export const EnhancedVerificationFlow: React.FC = () => {
     });
 
     const pendingPayload = useRef<FormData | null>(null);
+    const { imageFile, textInput } = flowState;
 
     /* ── Reset Flow ───────────────────────────────────────────────────────── */
 
@@ -174,8 +175,6 @@ export const EnhancedVerificationFlow: React.FC = () => {
 
     const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        const { imageFile, textInput } = flowState;
         
         // 1. Client-side validation
         const validationErrors = validateUploadForm(imageFile, textInput);
@@ -219,7 +218,7 @@ export const EnhancedVerificationFlow: React.FC = () => {
             showArtifactViewer: true,
             step: 'analysing',
         }));
-    }, [flowState.imageFile, flowState.textInput, validateUploadForm, detectPII]);
+    }, [imageFile, textInput, validateUploadForm, detectPII]);
 
     /* ── API Verification ─────────────────────────────────────────────────── */
 
