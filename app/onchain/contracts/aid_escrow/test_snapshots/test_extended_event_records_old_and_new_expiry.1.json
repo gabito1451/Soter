@@ -127,6 +127,28 @@
           "sub_invocations": []
         }
       ]
+    ],
+    [
+      [
+        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
+        {
+          "function": {
+            "contract_fn": {
+              "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4",
+              "function_name": "extend_expiry",
+              "args": [
+                {
+                  "u64": "42"
+                },
+                {
+                  "u64": "87000"
+                }
+              ]
+            }
+          },
+          "sub_invocations": []
+        }
+      ]
     ]
   ],
   "ledger": {
@@ -222,6 +244,39 @@
                 "key": {
                   "ledger_key_nonce": {
                     "nonce": "1033654523790656264"
+                  }
+                },
+                "durability": "temporary",
+                "val": "void"
+              }
+            },
+            "ext": "v0"
+          },
+          6311999
+        ]
+      ],
+      [
+        {
+          "contract_data": {
+            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
+            "key": {
+              "ledger_key_nonce": {
+                "nonce": "2032731177588607455"
+              }
+            },
+            "durability": "temporary"
+          }
+        },
+        [
+          {
+            "last_modified_ledger_seq": 0,
+            "data": {
+              "contract_data": {
+                "ext": "v0",
+                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
+                "key": {
+                  "ledger_key_nonce": {
+                    "nonce": "2032731177588607455"
                   }
                 },
                 "durability": "temporary",
@@ -402,7 +457,7 @@
                         "symbol": "expires_at"
                       },
                       "val": {
-                        "u64": "86400"
+                        "u64": "87000"
                       }
                     },
                     {
@@ -854,14 +909,14 @@
           "v0": {
             "topics": [
               {
-                "symbol": "package_created"
+                "symbol": "extended_event"
               }
             ],
             "data": {
               "map": [
                 {
                   "key": {
-                    "symbol": "actor"
+                    "symbol": "admin"
                   },
                   "val": {
                     "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM"
@@ -869,15 +924,7 @@
                 },
                 {
                   "key": {
-                    "symbol": "amount"
-                  },
-                  "val": {
-                    "i128": "1000"
-                  }
-                },
-                {
-                  "key": {
-                    "symbol": "package_id"
+                    "symbol": "id"
                   },
                   "val": {
                     "u64": "42"
@@ -885,18 +932,18 @@
                 },
                 {
                   "key": {
-                    "symbol": "recipient"
+                    "symbol": "new_expires_at"
                   },
                   "val": {
-                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4"
+                    "u64": "87000"
                   }
                 },
                 {
                   "key": {
-                    "symbol": "timestamp"
+                    "symbol": "old_expires_at"
                   },
                   "val": {
-                    "u64": "0"
+                    "u64": "86400"
                   }
                 }
               ]
