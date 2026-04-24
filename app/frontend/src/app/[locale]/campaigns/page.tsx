@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ExportControls } from '@/components/dashboard/ExportControls';
 import { useCampaigns, useCreateCampaign, useUpdateCampaign } from '@/hooks/useCampaigns';
 import {
@@ -35,6 +36,8 @@ function toCampaignStatus(value: string): CampaignStatus | '' {
 }
 
 export default function CampaignsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const userRole = getUserRole();
   const userRoleLabel = getUserRoleLabel(userRole);
   const { data: campaigns = [], isLoading, isError, error } = useCampaigns();
