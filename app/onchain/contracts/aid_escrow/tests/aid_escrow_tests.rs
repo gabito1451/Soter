@@ -54,12 +54,11 @@ impl TestSetup {
 
         // Init the escrow with an open config (no token restrictions, no max expiry).
         client.init(&admin);
-        client
-            .set_config(&Config {
-                min_amount: 1,
-                max_expires_in: 0,
-                allowed_tokens: Vec::new(&env),
-            });
+        client.set_config(&Config {
+            min_amount: 1,
+            max_expires_in: 0,
+            allowed_tokens: Vec::new(&env),
+        });
 
         Self {
             env,
@@ -92,8 +91,14 @@ impl TestSetup {
     fn create_default_package(&self, recipient: &Address, amount: i128) -> u64 {
         self.fund_contract(amount);
         let expires_at = self.now() + 3_600; // 1 hour from now
-        self.client
-            .create_package(&self.admin, &1u64, recipient, &amount, &self.token, &expires_at)
+        self.client.create_package(
+            &self.admin,
+            &1u64,
+            recipient,
+            &amount,
+            &self.token,
+            &expires_at,
+        )
     }
 }
 
@@ -115,9 +120,9 @@ mod create_package {
         let recipient = Address::generate(&t.env);
         let expires_at = t.now() + 3_600;
 
-        let result = t
-            .client
-            .try_create_package(&t.admin, &1u64, &recipient, &0i128, &t.token, &expires_at);
+        let result =
+            t.client
+                .try_create_package(&t.admin, &1u64, &recipient, &0i128, &t.token, &expires_at);
 
         assert_eq!(result, Err(Ok(Error::InvalidAmount)));
     }
@@ -129,9 +134,14 @@ mod create_package {
         let recipient = Address::generate(&t.env);
         let expires_at = t.now() + 3_600;
 
-        let result = t
-            .client
-            .try_create_package(&t.admin, &2u64, &recipient, &(-10i128), &t.token, &expires_at);
+        let result = t.client.try_create_package(
+            &t.admin,
+            &2u64,
+            &recipient,
+            &(-10i128),
+            &t.token,
+            &expires_at,
+        );
 
         assert_eq!(result, Err(Ok(Error::InvalidAmount)));
     }
@@ -142,20 +152,24 @@ mod create_package {
         let t = TestSetup::new();
 
         // Raise the minimum to 100.
-        t.client
-            .set_config(&Config {
-                min_amount: 100,
-                max_expires_in: 0,
-                allowed_tokens: Vec::new(&t.env),
-            });
+        t.client.set_config(&Config {
+            min_amount: 100,
+            max_expires_in: 0,
+            allowed_tokens: Vec::new(&t.env),
+        });
 
         let recipient = Address::generate(&t.env);
         let expires_at = t.now() + 3_600;
         t.fund_contract(50);
 
-        let result = t
-            .client
-            .try_create_package(&t.admin, &3u64, &recipient, &50i128, &t.token, &expires_at);
+        let result = t.client.try_create_package(
+            &t.admin,
+            &3u64,
+            &recipient,
+            &50i128,
+            &t.token,
+            &expires_at,
+        );
 
         assert_eq!(result, Err(Ok(Error::InvalidAmount)));
     }
@@ -179,7 +193,8 @@ mod create_package {
         let recipient = Address::generate(&env);
         let expires_at = env.ledger().timestamp() + 3_600;
 
-        let result = client.try_create_package(&recipient, &1u64, &recipient, &100i128, &token, &expires_at);
+        let result =
+            client.try_create_package(&recipient, &1u64, &recipient, &100i128, &token, &expires_at);
 
         assert_eq!(result, Err(Ok(Error::NotInitialized)));
     }
@@ -229,13 +244,24 @@ mod create_package {
         t.fund_contract(200);
 
         // First creation succeeds.
-        t.client
-            .create_package(&t.admin, &42u64, &recipient, &100i128, &t.token, &expires_at);
+        t.client.create_package(
+            &t.admin,
+            &42u64,
+            &recipient,
+            &100i128,
+            &t.token,
+            &expires_at,
+        );
 
         // Second creation with the same ID must fail.
-        let result = t
-            .client
-            .try_create_package(&t.admin, &42u64, &recipient, &50i128, &t.token, &expires_at);
+        let result = t.client.try_create_package(
+            &t.admin,
+            &42u64,
+            &recipient,
+            &50i128,
+            &t.token,
+            &expires_at,
+        );
 
         assert_eq!(result, Err(Ok(Error::PackageIdExists)));
     }
@@ -253,9 +279,14 @@ mod create_package {
         // Fund only 50 but ask for 100.
         t.fund_contract(50);
 
-        let result = t
-            .client
-            .try_create_package(&t.admin, &1u64, &recipient, &100i128, &t.token, &expires_at);
+        let result = t.client.try_create_package(
+            &t.admin,
+            &1u64,
+            &recipient,
+            &100i128,
+            &t.token,
+            &expires_at,
+        );
 
         assert_eq!(result, Err(Ok(Error::InsufficientFunds)));
     }
@@ -274,19 +305,23 @@ mod create_package {
         let mut allowed = Vec::new(&t.env);
         allowed.push_back(allowed_token);
 
-        t.client
-            .set_config(&Config {
-                min_amount: 1,
-                max_expires_in: 0,
-                allowed_tokens: allowed,
-            });
+        t.client.set_config(&Config {
+            min_amount: 1,
+            max_expires_in: 0,
+            allowed_tokens: allowed,
+        });
 
         let recipient = Address::generate(&t.env);
         let expires_at = t.now() + 3_600;
 
-        let result =
-            t.client
-                .try_create_package(&t.admin, &1u64, &recipient, &100i128, &disallowed_token, &expires_at);
+        let result = t.client.try_create_package(
+            &t.admin,
+            &1u64,
+            &recipient,
+            &100i128,
+            &disallowed_token,
+            &expires_at,
+        );
 
         assert_eq!(result, Err(Ok(Error::InvalidState)));
     }
@@ -457,9 +492,13 @@ mod edge_cases {
         let mut amounts = Vec::new(&t.env);
         amounts.push_back(100i128); // only one amount for two recipients
 
-        let result = t
-            .client
-            .try_batch_create_packages(&t.admin, &recipients, &amounts, &t.token, &3_600u64);
+        let result = t.client.try_batch_create_packages(
+            &t.admin,
+            &recipients,
+            &amounts,
+            &t.token,
+            &3_600u64,
+        );
 
         assert_eq!(result, Err(Ok(Error::MismatchedArrays)));
     }
@@ -543,9 +582,14 @@ mod edge_cases {
             .create_package(&t.admin, &1u64, &recipient, &100i128, &t.token, &expires_at);
 
         // All 100 are locked — creating another package should fail.
-        let r2 = t
-            .client
-            .try_create_package(&t.admin, &2u64, &recipient, &50i128, &t.token, &expires_at);
+        let r2 = t.client.try_create_package(
+            &t.admin,
+            &2u64,
+            &recipient,
+            &50i128,
+            &t.token,
+            &expires_at,
+        );
         assert_eq!(r2, Err(Ok(Error::InsufficientFunds)));
 
         // After claiming, 100 leave the contract entirely.
@@ -553,8 +597,8 @@ mod edge_cases {
 
         // Fund another 50 and verify a new package can now be created.
         t.fund_contract(50);
-        let _r3 = t
-            .client
-            .create_package(&t.admin, &3u64, &recipient, &50i128, &t.token, &expires_at);
+        let _r3 =
+            t.client
+                .create_package(&t.admin, &3u64, &recipient, &50i128, &t.token, &expires_at);
     }
 }
