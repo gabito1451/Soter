@@ -29,7 +29,11 @@ export interface ReconciliationReport {
   summary: {
     totalDiscrepancies: number;
     bySeverity: { low: number; medium: number; high: number };
-    byType: { missing: number; amount_mismatch: number; count_mismatch: number };
+    byType: {
+      missing: number;
+      amount_mismatch: number;
+      count_mismatch: number;
+    };
   };
   actionable: boolean;
 }
@@ -194,10 +198,10 @@ export class LedgerReconciliationService {
     };
   }
 
-  private async fetchOnChainData(
-    startLedger: number,
-    endLedger: number,
-  ): Promise<any[]> {
+  private fetchOnChainData(
+    _startLedger: number,
+    _endLedger: number,
+  ): any[] {
     // Placeholder for actual Horizon API call
     // In production, this would query the Stellar Horizon API
     return [];

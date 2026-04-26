@@ -162,10 +162,10 @@ export class LedgerBackfillService {
     return { processed, skipped };
   }
 
-  private async fetchLedgerRange(
-    startLedger: number,
-    endLedger: number,
-  ): Promise<any[]> {
+  private fetchLedgerRange(
+    _startLedger: number,
+    _endLedger: number,
+  ): any[] {
     // Placeholder for actual Horizon API call
     // In production, this would query the Stellar Horizon API
     return [];

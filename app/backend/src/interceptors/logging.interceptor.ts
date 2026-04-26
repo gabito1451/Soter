@@ -26,7 +26,10 @@ export class LoggingInterceptor implements NestInterceptor {
     const method = request.method;
     const url = request.url;
     const requestId = request.headers['x-request-id'] as string;
-    const userId = (request.user as any)?.sub || (request.user as any)?.id || (request.user as any)?.apiKeyId;
+    const userId =
+      (request.user as any)?.sub ||
+      (request.user as any)?.id ||
+      (request.user as any)?.apiKeyId;
     const route = `${method} ${url}`;
     const startTime = Date.now();
 

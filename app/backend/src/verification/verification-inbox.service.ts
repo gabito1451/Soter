@@ -99,7 +99,8 @@ export class VerificationInboxService {
     };
 
     for (const stat of stats) {
-      result[stat.status as keyof StatsResponse] = stat._count;
+      const statusKey = stat.status as keyof StatsResponse;
+      result[statusKey] = stat._count;
       result.total += stat._count;
     }
 
